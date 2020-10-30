@@ -30,3 +30,7 @@ The main problematic is to define the power consumption of every component or fu
 The weight and aerodynamic of the car have to count in the calculus.
 The battery stockage and power supply need to be given as parameter to allow different simulation type.
 Stop the car when there's no more power allow a new good parameter to test and create car.
+
+## Links
+
+https://docs.google.com/document/d/1ZSVyajzm0fQe7fPy5RVXt3ifOAFmoWJv5zQjS9kkFco/edit
