@@ -15,7 +15,7 @@ To begin the process, I will let the car know every function then, let the car t
 - turn(angle, unit="degree")
     could be negative for degree
     unit is default to "degree", could be "radian
-- detect(distance, angle, unit="degree", detector="camera")
+- detect(intensity, angle, unit="degree", sensor="camera")
     distance is set the max distance detection
     angle could be negative for degree,
     unit is default to "degree", could be "radian)

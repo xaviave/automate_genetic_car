@@ -1,0 +1,2 @@
+svgwrite==1.4
+argparse==1.4.0

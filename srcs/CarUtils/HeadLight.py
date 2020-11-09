@@ -1,0 +1,2 @@
+class HeadLight:
+    pass
