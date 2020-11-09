@@ -5,15 +5,11 @@ Generate maps that the Automate Genetic Car will use to train on.
 
 ## 2D track
 
-Launch with: `python3 xagc.py track`
+Launch with: `python3 srcs/xtrack.py`
 
 Generate the track SVG in data/tracks
-
-### Prerequisites
-
-Install cairo `sudo apt-get install libcairo2`
-
-Then: `pip3 install requirements/requirements.txt`
+Options allows you to convert SVG into image's types of your choices.
+See all options in usage with: `python3 srcs/xtrack.py -h`  
 
 ### Colors
 
@@ -22,15 +18,18 @@ The colors allow the car's sensor to detect the environment.
     black: road
     green: grass
     
-version 0: Only detect the road and the grass, no obstacles or different road's types
+version 0: Only create the road and the grass, no obstacles or different road's types no curves too
 
 ### Algorithm
 
 Following parameters, a line will start from a random point in the left side of the SVG connect to the right side.
-Difficulty parameters will add points in the SVG to add curves on the line.
+Difficulty parameters will add points and curves indices that will complexify the line drawing.
 
-    Difficulty: 1-10, add points in a range around the start point.
-    Curves: 1-3, define the hardness of the curves.
-    Size: define the Width and the Height. 
+    Difficulty: 1-3
  
- 
+  
+## Prerequisites
+
+Install cairo `sudo apt install libcairo2`
+
+Then: `pip3 install requirements/requirements.txt`
