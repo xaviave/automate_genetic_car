@@ -1,5 +1,4 @@
 # from Tools.Genetic import Genetic
-from TrackUtils.TrackGenerator import TrackGenerator
 
 """
     Launcher for the Automate Genetic algorithm Car
@@ -7,7 +6,6 @@ from TrackUtils.TrackGenerator import TrackGenerator
 
 
 def main():
-    TrackGenerator()
     # Genetic()
     pass
 
