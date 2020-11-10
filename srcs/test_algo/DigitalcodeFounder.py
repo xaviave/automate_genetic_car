@@ -75,6 +75,18 @@ class DigitalcodeFounder(Genetic):
             return True
         return False
 
+    def mating(self):
+        temp_pop = []
+        for _ in range(int(self.population_size / 2)):
+            parent1 = random.randint(0, self.population_size - 1)
+            parent2 = random.randint(0, self.population_size - 1)
+            temp_pop.extend(self._crossover(self.population[parent1], self.population[parent2]))
+        if self.mutation > 0:
+            for _ in range(self.mutation):
+                self._mutation(temp_pop[random.randint(0, self.population_size - 1)])
+        self.population = temp_pop
+        self.population_size = len(self.population)
+
     def logging(self):
         super().logging()
         print(f"Solution is {self.solution}")

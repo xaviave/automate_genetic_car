@@ -62,16 +62,7 @@ class Genetic:
         apply crossover or mutation
         every operation on individual from the population is here
         """
-        temp_pop = []
-        for _ in range(int(self.population_size / 2)):
-            parent1 = random.randint(0, self.population_size - 1)
-            parent2 = random.randint(0, self.population_size - 1)
-            temp_pop.extend(self._crossover(self.population[parent1], self.population[parent2]))
-        if self.mutation > 0:
-            for _ in range(self.mutation):
-                self._mutation(temp_pop[random.randint(0, self.population_size - 1)])
-        self.population = temp_pop
-        self.population_size = len(self.population)
+        pass
 
     def check_result(self) -> bool:
         """
@@ -85,7 +76,7 @@ class Genetic:
 Number of iteration to find solution: {self.iteration}
 Number of crossover: {self.crossover_count}
 Number of mutation: {self.mutation_count}
-Time: {datetime.datetime.now() - self.start_time}
+Time: {self.end_time}
 """
         )
 
