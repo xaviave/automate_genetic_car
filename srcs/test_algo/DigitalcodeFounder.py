@@ -29,13 +29,18 @@ class DigitalcodeFounder(Genetic):
 
     def init_population(self):
         self.population = [
-            Individual(self._gen_code(self.password_len)) for _ in range(self.population_size)
+            Individual(self._gen_code(self.password_len))
+            for _ in range(self.population_size)
         ]
 
     def fitness_calculation(self):
         for i, individual in enumerate(self.population):
             self.population[i].change_match(
-                sum(1 for x, gene in enumerate(individual.genes) if gene == self.solution[x])
+                sum(
+                    1
+                    for x, gene in enumerate(individual.genes)
+                    if gene == self.solution[x]
+                )
             )
 
     def mating_poll(self):
@@ -43,9 +48,9 @@ class DigitalcodeFounder(Genetic):
         select the first half of the population with the highest match
         """
         self.past_population = self.population
-        self.population = sorted(self.population, key=lambda ind: ind.match, reverse=True)[
-            : int(self.population_size / 2)
-        ]
+        self.population = sorted(
+            self.population, key=lambda ind: ind.match, reverse=True
+        )[: int(self.population_size / 2)]
 
     def parents_selection(self):
         if len(self.population) < self.initial_population:
@@ -68,7 +73,9 @@ class DigitalcodeFounder(Genetic):
 
     def _mutation(self, individual):
         super()._mutation(individual)
-        individual.genes[random.randint(0, len(individual.genes) - 1)] = random.randint(0, 9)
+        individual.genes[random.randint(0, len(individual.genes) - 1)] = random.randint(
+            0, 9
+        )
 
     def check_result(self) -> bool:
         if any([1 for ind in self.population if ind.genes == self.solution]):
@@ -80,7 +87,9 @@ class DigitalcodeFounder(Genetic):
         for _ in range(int(self.population_size / 2)):
             parent1 = random.randint(0, self.population_size - 1)
             parent2 = random.randint(0, self.population_size - 1)
-            temp_pop.extend(self._crossover(self.population[parent1], self.population[parent2]))
+            temp_pop.extend(
+                self._crossover(self.population[parent1], self.population[parent2])
+            )
         if self.mutation > 0:
             for _ in range(self.mutation):
                 self._mutation(temp_pop[random.randint(0, self.population_size - 1)])

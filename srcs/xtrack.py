@@ -6,7 +6,7 @@ from TrackUtils.TrackGenerator import TrackGenerator
 
 
 def main():
-    TrackGenerator()
+    track = TrackGenerator()
 
 
 if "__main__" == __name__:

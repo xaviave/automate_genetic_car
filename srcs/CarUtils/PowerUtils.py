@@ -28,10 +28,16 @@ class PowerUnits:
         return True
 
     def _consumption(self, consumption: float, power_usage: float) -> bool:
-        expected_consumption: float = self._estimate_consumption(consumption, power_usage)
+        expected_consumption: float = self._estimate_consumption(
+            consumption, power_usage
+        )
         if self._check_remaining_power(expected_consumption) is False:
             # logger here
             # need to stop the car here like no power no sensor or motor
             return False
         self._total -= expected_consumption
         return True
+
+    def __init__(self, capacity, tension):
+        self.tension = tension
+        self.capacity = capacity

@@ -10,7 +10,7 @@ To train these little evolutive car we need to create random playground. Cars li
 
 `xtrack.py` is a minimal track creator with color with signification obviously and a pattern for road that cross a SVG file.
 Options are used to create complexity because our cars will be better and better.
-Their is a track generator `ReadMe` in *srcs/TrackUtils/*
+There is a track generator `ReadMe` in *srcs/TrackUtils/*
 
 ## Car's function
 

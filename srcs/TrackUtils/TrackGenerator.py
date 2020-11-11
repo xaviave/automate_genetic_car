@@ -72,16 +72,25 @@ class TrackGenerator(ArgParser):
             help="Default image type",
         )
         sp.add_argument(
-            "--jpg", action="store_const", const=ImageHandler.save_jpg, dest="image_type_func"
+            "--jpg",
+            action="store_const",
+            const=ImageHandler.save_jpg,
+            dest="image_type_func",
         )
         sp.add_argument(
-            "--jpeg", action="store_const", const=ImageHandler.save_jpeg, dest="image_type_func"
+            "--jpeg",
+            action="store_const",
+            const=ImageHandler.save_jpeg,
+            dest="image_type_func",
         )
 
     def _get_options(self):
         super()._get_options()
         if not os.path.exists(self.args.path):
-            self._exit(message="Directory does not exist.")
+            os.makedirs(self.args.path)
+            logging.info(
+                f"Directory does not exist. '{self.args.path}' is now crreated."
+            )
         if self.args.height < 50 or self.args.width < 50:
             self._exit(message="Height and Width must be greater than 50")
         if self.args.image_type_func is None:
@@ -114,7 +123,7 @@ class TrackGenerator(ArgParser):
 
     def _generate_map(self, width, height):
         dwg = svgwrite.Drawing(
-            filename=self.file_name,
+            filename=f"{self.file_name}.svg",
             size=(width, height),
         )
         rect = dwg.add(dwg.g(id="background"))
@@ -124,7 +133,11 @@ class TrackGenerator(ArgParser):
         polyline = dwg.add(dwg.g(id="polyline"))
         polyline.add(
             dwg.polyline(
-                self.points, stroke_width=line_width, stroke="black", fill="black", fill_opacity=0.0
+                self.points,
+                stroke_width=line_width,
+                stroke="black",
+                fill="black",
+                fill_opacity=0.0,
             )
         )
         dwg.save()
@@ -159,7 +172,7 @@ class TrackGenerator(ArgParser):
         super().__init__()
         self.file_name = os.path.join(
             self.get_args("path"),
-            f"Track_{self.get_args('complexity').value}_{datetime.datetime.now()}.svg",
+            f"Track_{self.get_args('complexity').value}_{datetime.datetime.now()}",
         )
         logging.info(self.args)
         self.generate_track()
@@ -169,3 +182,4 @@ class TrackGenerator(ArgParser):
         height = self.get_args("height")
         self._generate_road(width, height)
         self._generate_map(width, height)
+        self.get_args("image_type_func")(self.file_name, delete=True)
