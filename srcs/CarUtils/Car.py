@@ -1,16 +1,19 @@
 import os
 import string
 import random
+import logging
 import datetime
 
 import numpy as np
 
 from Tools.ImageHandler import ImageHandler
+from Tools.TrackData import TrackData
 
 
 class Car:
-    angle: float = 0.0
+    angle: float = 4.72
     coord: tuple = (0, 0)
+    tracks: list = []
     motors: list = []
     sensors: list = []
     headlights: list = []
@@ -32,18 +35,22 @@ class Car:
         return True
 
     def _get_light_map(self, shape: tuple):
-        light_map = np.zeros(shape=shape)
+        light_map = np.zeros(shape=shape[:2])
         for light in self.headlights:
-            light_map += light.light(np.zeros(shape=shape), self.angle)
+            light_map += light.light(
+                self.coord,
+                self.angle,
+                np.zeros(shape=shape),
+            )
         return light_map
 
-    def _get_sensor_map(self, light_map: np.ndarray):
+    def _get_sensor_map(self, track_map: np.ndarray, light_map: np.ndarray):
         """
         sum all matrix, allow weight on each pixel
         """
         sensor_map = np.zeros(shape=light_map.shape)
         for sensor in self.sensors:
-            sensor_map += sensor.detect(self.pos, self.angle, light_map)
+            sensor_map += sensor.detect(self.coord, self.angle, track_map, light_map)
         return sensor_map
 
     def _use_motors(self, sensor_map):
@@ -61,9 +68,9 @@ class Car:
         pass
 
     def _turn(self, light_map, sensor_map):
-        return 1.0
+        return np.radians(5.0)
 
-    def _drive(self, track_map, timer=datetime.timedelta(seconds=1)):
+    def _drive(self, track_map, timer=datetime.timedelta(seconds=2)):
         i = 0
         start_time = datetime.datetime.now()
         while all(
@@ -73,20 +80,27 @@ class Car:
                 self._check_power_state(),
             ]
         ):
+            # logging.info(f"iteration: {i}")
             file_name = os.path.join(self.tmp_tracks_path, f"{i}")
-            light_map = self._get_light_map(track_map.shape[:2])
-            sensor_map = self._get_sensor_map(light_map)
-            self.angle += self._turn(light_map, sensor_map)
+            light_map = self._get_light_map(track_map.shape)
+            sensor_map = self._get_sensor_map(track_map, light_map)
+            self.angle = self.angle + self._turn(light_map, sensor_map)
             move = self._use_motors(sensor_map)
             self._update_coord(move)
-            ImageHandler().np_to_img(
-                file_name, track_map, light_map, sensor_map, self.pos
+            self.tracks.append(
+                TrackData(
+                    file_name,
+                    np.copy(light_map),
+                    np.copy(sensor_map),
+                    self.coord,
+                )
             )
             i += 1
+        logging.info(f"iteration: {i}")
 
-    def __init__(self, pos, sensors, headlights, motors, power_utils):
-        self.pos = pos
-        self.motors = motors  # for now multi motors is useless
+    def __init__(self, coord, sensors, headlights, motors, power_utils):
+        self.coord = coord
+        self.motors = motors  # for now multi-motors is useless
         self.sensors = sensors
         self.headlights = headlights
         self.power_utils = power_utils
@@ -102,6 +116,8 @@ class Car:
 
     def launch(self, track_map, gif=False):
         self._drive(track_map)
+        for x in self.tracks:
+            ImageHandler().np_to_img(track_map, x)
         if gif:
             ImageHandler().save_gif(
                 os.path.join(self.gif_path, "xagc.gif"),

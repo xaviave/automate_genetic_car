@@ -24,5 +24,4 @@ class Motor:
             use logarithm like function to calcul the acceleration thanks to the top speed and the actual speed 
         """
         dist: float = 0.0
-
         return dist

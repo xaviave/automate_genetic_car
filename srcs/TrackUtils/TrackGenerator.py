@@ -43,14 +43,14 @@ class TrackGenerator(ArgParser):
             "-ww",
             "--width",
             type=int,
-            default=100,
+            default=500,
             help="Define the Width of the track, min 50",
         )
         parser.add_argument(
             "-hh",
             "--height",
             type=int,
-            default=100,
+            default=500,
             help="Define the Height of the track, min 50",
         )
         parser.add_argument(
@@ -89,7 +89,7 @@ class TrackGenerator(ArgParser):
         if not os.path.exists(self.args.path):
             os.makedirs(self.args.path)
             logging.info(
-                f"Directory does not exist. '{self.args.path}' is now crreated."
+                f"Directory does not exist. '{self.args.path}' is now created."
             )
         if self.args.height < 50 or self.args.width < 50:
             self._exit(message="Height and Width must be greater than 50")
@@ -181,5 +181,6 @@ class TrackGenerator(ArgParser):
         width = self.get_args("width")
         height = self.get_args("height")
         self._generate_road(width, height)
+        self.points.append((510, 510))
         self._generate_map(width, height)
         self.get_args("image_type_func")(self.file_name, delete=True)
