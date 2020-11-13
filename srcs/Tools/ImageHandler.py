@@ -7,33 +7,52 @@ import numpy as np
 
 from PIL import Image
 from cairosvg import svg2png
+from cached_property import cached_property
 
 
 class ImageHandler:
-    _light_color: np.array = np.array([0, 50, 255, 255])
-    _sensor_color: np.array = np.array([255, 50, 0, 255])
+    @staticmethod
+    def _get_lut(color0, color1, fnull=False):
+        lut = np.concatenate((color0, color1), axis=0)
+        lut = cv2.resize(lut, (1, 256), interpolation=cv2.INTER_LINEAR)
+        if fnull:
+            lut[0][0] = [0, 0, 0, 0]
+        return lut
+
+    @cached_property
+    def _light_color_lut(self):
+        color0 = np.full((1, 1, 4), (0, 100, 100, 150), np.uint8)
+        color1 = np.full((1, 1, 4), (0, 255, 255, 255), np.uint8)
+        return self._get_lut(color0, color1, fnull=True)
+
+    @cached_property
+    def _sensor_color_lut(self):
+        color0 = np.full((1, 1, 4), (0, 0, 100, 255), np.uint8)
+        color1 = np.full((1, 1, 4), (0, 0, 255, 255), np.uint8)
+        return self._get_lut(color0, color1, fnull=True)
 
     @staticmethod
-    def _get_filter(bin_map, color):
-        pixel_filter = np.repeat(bin_map[:, :, np.newaxis], 4, axis=2)
-        pixel_light_mask = (pixel_filter > [0, 0, 0, 0]).all(axis=2)
-        pixel_filter[pixel_light_mask] = color
-        return pixel_filter
+    def _change_color_map(img, color_map):
+        dist = img.astype(np.uint8)
+        return cv2.LUT(dist, color_map).astype(np.float64)
 
     def np_to_img(self, track_map, track_data):
-        map_filter = cv2.add(
-            self._get_filter(track_data.light_map, self._light_color),
-            self._get_filter(track_data.sensor_map, self._sensor_color),
+        light_map = self._change_color_map(track_data.light_map, self._light_color_lut)
+        sensor_map = self._change_color_map(
+            track_data.sensor_map, self._sensor_color_lut
+        )
+        map_filter = cv2.addWeighted(
+            sensor_map, 0.5, light_map, 0.5, 0, dtype=cv2.CV_64F
         )
         track_map = cv2.addWeighted(
-            track_map, 0.7, map_filter, 0.3, 0, dtype=cv2.CV_64F
+            track_map, 0.5, map_filter, 0.5, 0, dtype=cv2.CV_64F
         )
         track_map[track_data.car_pos[0]][track_data.car_pos[1]] = 255
         cv2.putText(
             track_map,
             track_data.file_name,
             (10, int(0.9 * track_map.shape[1])),
-            cv2.FONT_HERSHEY_SIMPLEX,
+            cv2.FONT_HERSHEY_DUPLEX,
             0.5,
             (0, 255, 255, 255),
             1,

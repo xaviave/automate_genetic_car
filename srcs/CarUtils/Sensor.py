@@ -2,8 +2,10 @@ import cv2
 import logging
 import numpy as np
 
+from Tools.GeometryUtils import GeometryUtils
 
-class Sensor:
+
+class Sensor(GeometryUtils):
     avoid: np.array
     light_vector: np.array
     position: tuple
@@ -52,40 +54,26 @@ class Sensor:
         )
         return np.dot(rotate, vec)
 
-    import sys
-
-    np.set_printoptions(threshold=sys.maxsize)
-
     def detect(self, car_coord, car_angle, track_map, light_map):
-        # call power unit_checker
         """
         PowerUnits._consumption(self._consumption, self._energy_usage)
         everything will stop right now if there not enough power
         """
-        """
-        Need to count efficiency param in light_map
-        An efficiency ratio could be created for sensor too use by motors and
-        obvioulsy alpha color in gif
-        """
 
-        # redondant
-        angles = [car_angle - self.angle, car_angle - self.angle + self.angle_range]
-        vec1 = np.add(
-            self._rotate_around_point(self.sensor_vector, angles[0]), car_coord
+        # boolean map with sensor vision mask
+        range_map = self._get_triangle_mask(
+            np.zeros(track_map.shape),
+            self.sensor_vector,
+            car_coord,
+            car_angle - self.angle,
+            car_angle - self.angle + self.angle_range,
         )
-        vec2 = np.add(
-            self._rotate_around_point(self.sensor_vector, angles[1]), car_coord
-        )
-        pts = np.array([[car_coord, vec1, vec2]], dtype=np.int32)
-        intersect_map = np.zeros(track_map.shape)
-        cv2.fillPoly(intersect_map, pts, (1, 0, 0, 255))
+        # boolean map with light map and sensor mask,
+        light_sensor = np.logical_and(light_map, range_map)
 
+        # boolean map with good env (road) mask
         tmp = np.any(track_map != self.avoid, axis=2)
-        tmp_intersect = np.all(intersect_map == np.array([1, 0, 0, 255]), axis=2)
-        tmp_light = light_map > 0
 
-        light_sensor = np.logical_and(tmp_light, tmp_intersect)
+        # apply all mask on road map mask
         c = np.logical_and(tmp, light_sensor)
-
-        sensor_map = 1 * c
-        return sensor_map
+        return self._intensity_map(c, bin_map=True)

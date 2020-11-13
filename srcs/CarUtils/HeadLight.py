@@ -1,8 +1,10 @@
 import cv2
 import numpy as np
 
+from Tools.GeometryUtils import GeometryUtils
 
-class Headlight:
+
+class Headlight(GeometryUtils):
     position: tuple
     light_vector: np.array
     angle: float
@@ -23,31 +25,16 @@ class Headlight:
     def _consumption(self):
         return self.intensity * self.using_time * self._temperature
 
-    @staticmethod
-    def _rotate_around_point(vec, angle) -> np.array:
-        rotate = np.array(
-            [[np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)]]
-        )
-        return np.dot(rotate, vec)
-
     def light(self, car_coord: tuple, car_angle: float, track_map: np.ndarray):
-        # call power unit_checker
         """
         PowerUnits._consumption(self._consumption, self._energy_usage)
         everything will stop right now if there not enough power
         """
-        """
-        Need to create an efficiency param for light precision counting in sensor
-        and alpha in the gif rendering
-        """
-        angles = [car_angle - self.angle, car_angle - self.angle + self.angle_range]
-        vec1 = np.add(
-            self._rotate_around_point(self.light_vector, angles[0]), car_coord
+        mask = self._get_triangle_mask(
+            track_map,
+            self.light_vector,
+            car_coord,
+            car_angle - self.angle,
+            car_angle - self.angle + self.angle_range,
         )
-        vec2 = np.add(
-            self._rotate_around_point(self.light_vector, angles[1]), car_coord
-        )
-        pts = np.array([[car_coord, vec1, vec2]], dtype=np.int32)
-        cv2.fillPoly(track_map, pts, (1, 0, 0, 255))
-        track_map = 1 * np.all(track_map == np.array([1, 0, 0, 255]), axis=2)
-        return track_map
+        return mask, self._intensity_map(mask, bin_map=True)

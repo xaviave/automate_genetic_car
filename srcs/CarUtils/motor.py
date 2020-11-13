@@ -15,7 +15,6 @@ class Motor:
         return self.intensity * self._using_time * self._temperature
 
     def move(self, angle, acceleration, actual_speed, sensor_map):
-        # call power unit_checker
         """
         PowerUnits._consumption(self._consumption, self._energy_usage)
         everything will stop right now if there not enough power
