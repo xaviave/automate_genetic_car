@@ -4,13 +4,20 @@ import numpy as np
 
 class GeometryUtils:
     @staticmethod
-    def _rotate_around_point(vec, angle) -> np.array:
+    def _rotate_around_point(vec: np.array, angle: float) -> np.array:
         rotate = np.array(
             [[np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)]]
         )
         return np.dot(rotate, vec)
 
-    def _get_triangle_mask(self, array, ref_vec, ref_point, angle0, angle1):
+    def _get_triangle_mask(
+        self,
+        array: np.array,
+        ref_vec: np.array,
+        ref_point: tuple,
+        angle0: float,
+        angle1: float,
+    ) -> np.ndarray:
         vec1 = np.add(self._rotate_around_point(ref_vec, angle0), ref_point)
         vec2 = np.add(self._rotate_around_point(ref_vec, angle1), ref_point)
         pts = np.array([[ref_point, vec1, vec2]], dtype=np.int32)
@@ -18,7 +25,7 @@ class GeometryUtils:
         return 1 * np.all(array == np.array([1, 0, 0, 255]), axis=2)
 
     @staticmethod
-    def _bin_to_img(bin_map):
+    def _bin_to_img(bin_map: np.ndarray) -> np.ndarray:
         """
         create a filter img from a bin map
         """
@@ -28,8 +35,11 @@ class GeometryUtils:
         img[img_mask] = 255
         return img
 
-    def _intensity_map(self, img, bin_map=False):
+    def _intensity_map(self, img: np.ndarray, bin_map: bool = False) -> np.ndarray:
         """
+        Ratio the intensity of the light from the center to the corner of the polygon
+
+        TO-DO: Ratio the intensity of the light value with diff point-car coord value
         :param img: type must be np.uint8
         """
         if bin_map:

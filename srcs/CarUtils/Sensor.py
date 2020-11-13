@@ -22,23 +22,22 @@ class Sensor(GeometryUtils):
     """
 
     @property
-    def _consumption(self):
+    def _consumption(self) -> float:
         return self.intensity * self.using_time * self._temperature
 
-    def _compute_efficiency(self):
-        """
-        Greater the angle and the intensity, less is the sensor efficinency
-        efficiency is a factor that will affect the detection efficiency too
-        """
-        return 1.0
-
-    def __init__(self, pos, intensity, angle, angle_range, avoid):
+    def __init__(
+        self,
+        pos: tuple,
+        intensity: float,
+        angle: float,
+        angle_range: float,
+        avoid: list,
+    ):
         self.avoid = avoid
         self.angle = angle
         self.position = pos
         self.intensity = intensity
         self.angle_range = angle_range
-        self._efficiency = self._compute_efficiency()
         self.sensor_vector = np.array(
             [pos[0] + self.intensity, pos[1] + self.intensity]
         )
@@ -47,17 +46,20 @@ class Sensor(GeometryUtils):
         Public Methods
     """
 
-    @staticmethod
-    def _rotate_around_point(vec, angle) -> np.array:
-        rotate = np.array(
-            [[np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)]]
-        )
-        return np.dot(rotate, vec)
-
-    def detect(self, car_coord, car_angle, track_map, light_map):
+    def detect(
+        self,
+        car_coord: tuple,
+        car_angle: float,
+        track_map: np.ndarray,
+        light_map: np.ndarray,
+    ) -> np.ndarray:
         """
         PowerUnits._consumption(self._consumption, self._energy_usage)
         everything will stop right now if there not enough power
+        """
+
+        """
+        Generate an intensity map of sensor detection thanks to light_map
         """
 
         # boolean map with sensor vision mask
