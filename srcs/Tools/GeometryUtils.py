@@ -4,11 +4,22 @@ import numpy as np
 
 class GeometryUtils:
     @staticmethod
-    def _rotate_around_point(vec: np.array, angle: float) -> np.array:
+    def _vec_length(vec1: tuple, vec2: tuple):
+        return np.sqrt((vec2[0] - vec1[0]) ** 2 + (vec2[1] - vec1[1]) ** 2)
+
+    @staticmethod
+    def _rotate(vec: np.array, angle: float) -> np.array:
         rotate = np.array(
             [[np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)]]
         )
         return np.dot(rotate, vec)
+
+    def _rotate_around_point(self, vec: tuple, angle: float, ref_point: tuple) -> tuple:
+        """
+        Rotate vec then add the ref point allows a rotation around the ref point
+        """
+        vec = np.subtract(vec, ref_point)
+        return np.add(self._rotate(vec, angle), ref_point)
 
     def _get_triangle_mask(
         self,
@@ -18,10 +29,15 @@ class GeometryUtils:
         angle0: float,
         angle1: float,
     ) -> np.ndarray:
-        vec1 = np.add(self._rotate_around_point(ref_vec, angle0), ref_point)
-        vec2 = np.add(self._rotate_around_point(ref_vec, angle1), ref_point)
+        vec1 = self._rotate_around_point(ref_vec, angle0, ref_point)
+        vec2 = self._rotate_around_point(ref_vec, angle1, ref_point)
+        print(ref_point, vec1, vec2)
         pts = np.array([[ref_point, vec1, vec2]], dtype=np.int32)
-        cv2.fillPoly(array, pts, (1, 0, 0, 255))
+        pts2 = np.array(
+            [[(ref_point[1], ref_point[0]), (vec1[1], vec1[0]), (vec2[1], vec2[0])]],
+            dtype=np.int32,
+        )
+        cv2.fillPoly(array, pts2, (1, 0, 0, 255))
         return 1 * np.all(array == np.array([1, 0, 0, 255]), axis=2)
 
     @staticmethod

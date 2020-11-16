@@ -1,4 +1,10 @@
-class Motor:
+import numpy as np
+
+from Tools.GeometryUtils import GeometryUtils
+
+
+class Motor(GeometryUtils):
+    # could add torque
     top_speed: float
     max_acceleration: float
     _using_time: float = 0.0
@@ -14,13 +20,21 @@ class Motor:
         # redefine intensity around the acceleration parameter, nearly the same
         return self.intensity * self._using_time * self._temperature
 
-    def move(self, angle, acceleration, actual_speed, sensor_map):
+    def move(self, car_coord, next_car_coord, angle):
         """
         PowerUnits._consumption(self._consumption, self._energy_usage)
         everything will stop right now if there not enough power
         """
         """
-            use logarithm like function to calcul the acceleration thanks to the top speed and the actual speed 
+        add actual acceleration and actual speed
+        then find equation that calcul distance to move thanks acceleration and speed 
         """
-        dist: float = 0.0
-        return dist
+        return next_car_coord
+        return (
+            next_car_coord
+            if self._vec_length(next_car_coord, car_coord) < self.max_acceleration
+            else (
+                int(car_coord[0] + (np.cos(angle) * self.max_acceleration)),
+                int(car_coord[1] + (np.sin(angle) * self.max_acceleration)),
+            )
+        )

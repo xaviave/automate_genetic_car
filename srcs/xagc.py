@@ -32,11 +32,19 @@ from TrackUtils.TrackGenerator import TrackGenerator
 def main():
     track = TrackGenerator()
     track_map = ImageHandler().get_img(track.file_name, delete=True)
-    m = Motor(100, 100)
+    m = Motor(10, 100)
     avoid = np.array([0, 128, 0, 255], dtype=np.uint8)  # green
     s = Sensor((0, 0), 50, -0.52, 0.52, avoid)
     h = Headlight((0, 0), 100, -0.52, 0.52)
-    c = Car((50, 50), sensors=[s, s], headlights=[h], motors=[m], power_utils=[])
+    c = Car(
+        coord=(0, 0),
+        default_angle=0.52,
+        min_heat_map=0,
+        sensors=[s, s],
+        headlights=[h],
+        motors=[m],
+        power_utils=[],
+    )
     c.launch(track_map, gif=True)
 
 

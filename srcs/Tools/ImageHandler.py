@@ -93,10 +93,17 @@ class ImageHandler:
         """
         Create an image with sensor, emitter and track data
         """
+        print(track_data)
         map_filter = self._create_filter(track_data)
         track_map = cv2.addWeighted(
             track_map, 0.5, map_filter, 0.5, 0, dtype=cv2.CV_64F
         )
+        track_map[track_data.expected_car_pos[0]][track_data.expected_car_pos[1]] = [
+            255,
+            0,
+            0,
+            255,
+        ]
         track_map[track_data.car_pos[0]][track_data.car_pos[1]] = 255
         self._add_text_to_img(
             track_map,
@@ -117,6 +124,9 @@ class ImageHandler:
     def save_gif(
         self, file_name: str, image_path: str, images: list, delete: bool = False
     ):
+        if not images:
+            logging.error(f"No image generated")
+            return
         img, *imgs = [
             Image.open(os.path.join(image_path, f)) for f in natsort.natsorted(images)
         ]
