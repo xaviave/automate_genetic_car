@@ -4,6 +4,9 @@ Wrap with a genetic algorithm, the main mission for a dataless "car" is to drive
 Power supply is also a big parameter for every car, the consumation will be calculated.
 With repetition, random and selection, the car have to "evolve" and adapt itself to any road.
 
+![Example](https://github.com/xaviave/autamate_genetic_car/data/readme/example_v0.gif)
+
+
 ## Track generator
 
 To train these little evolutive car we need to create random playground. Cars like road but not grass so I star with this.
