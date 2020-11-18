@@ -6,6 +6,10 @@ from Tools.GeometryUtils import GeometryUtils
 
 
 class Sensor(GeometryUtils):
+    """
+    coord is the position of the sensor in the car
+    """
+
     avoid: np.array
     position: tuple
     angle: float
@@ -54,13 +58,11 @@ class Sensor(GeometryUtils):
         car_angle: float,
         track_map: np.ndarray,
         light_map: np.ndarray,
-        i,
     ) -> np.ndarray:
         """
         PowerUnits._consumption(self._consumption, self._energy_usage)
         everything will stop right now if there not enough power
         """
-
         """
         Generate an intensity map of sensor detection thanks to light_map
         """
@@ -81,21 +83,4 @@ class Sensor(GeometryUtils):
 
         # apply all mask on road map mask
         c = np.logical_and(tmp, light_sensor)
-        # mask = c * 1
-        # l = mask == 0
-        # mask[l] = 255
-        # dist = mask.astype(np.uint8)
-        # dist = cv2.cvtColor(dist, cv2.COLOR_GRAY2RGBA)
-        # dist[car_coord[0]][car_coord[1]] = (0, 255, 0, 255)
-        # cv2.putText(
-        #     dist,
-        #     f"{np.degrees(car_angle)} {car_coord}",
-        #     (10, 200),
-        #     cv2.FONT_HERSHEY_DUPLEX,
-        #     0.5,
-        #     [0, 255, 0, 255],
-        #     1,
-        #     cv2.LINE_AA,
-        # )
-        # cv2.imwrite(f"sensor{i}.png", dist)
         return self._intensity_map(c, bin_map=True)

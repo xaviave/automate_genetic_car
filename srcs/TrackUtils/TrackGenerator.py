@@ -5,7 +5,6 @@ import logging
 import datetime
 import svgwrite
 
-from svgwrite import cm, mm
 from Tools.ArgParser import ArgParser
 from Tools.ImageHandler import ImageHandler
 from TrackUtils.TrackComplexity import TrackComplexity
@@ -14,7 +13,7 @@ from TrackUtils.TrackEnvironment import TrackEnvironment
 
 class TrackGenerator(ArgParser):
     file_name: str
-    points: list = []
+    points: list = [(0, 0)]
     default_path = os.path.join("data", "tracks")
     default_environment = TrackEnvironment.list()
 
@@ -140,6 +139,15 @@ class TrackGenerator(ArgParser):
                 fill_opacity=0.0,
             )
         )
+        circle = dwg.add(dwg.g(id="circle"))
+        circle.add(
+            dwg.circle(
+                self.points[-1],
+                r=int(line_width / 2),
+                stroke="white",
+                fill="white",
+            )
+        )
         dwg.save()
 
     def _generate_road(self, width, height):
@@ -149,20 +157,18 @@ class TrackGenerator(ArgParser):
         for i in range(complexity.points):
             last_point = (x, y)
             if i == complexity.points - 1:
-                x = width
-                y = height
-            elif i > 0:
+                new_point = (width, height)
+            else:
                 x = int(width / (complexity.points - i))
                 y = int(height / (complexity.points - i))
-            self.points.append(
-                self._generate_point(
+                new_point = self._generate_point(
                     last_point,
                     x=x,
                     y=y,
                     range_x=i * complexity.curves,
                     range_y=i * complexity.curves,
                 )
-            )
+            self.points.append(new_point)
 
     """
         Public methods
@@ -181,6 +187,5 @@ class TrackGenerator(ArgParser):
         width = self.get_args("width")
         height = self.get_args("height")
         self._generate_road(width, height)
-        self.points.append((510, 510))
         self._generate_map(width, height)
         self.get_args("image_type_func")(self.file_name, delete=True)

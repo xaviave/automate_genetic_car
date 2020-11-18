@@ -21,8 +21,8 @@ class Complexity:
 
 class TrackComplexity(Enum):
     D1 = Complexity(level=1, points=3, curves=5, width=10)
-    D2 = Complexity(level=2, points=4, curves=5, width=10)
-    D3 = Complexity(level=3, points=6, curves=10, width=8)
+    D2 = Complexity(level=2, points=4, curves=10, width=10)
+    D3 = Complexity(level=3, points=6, curves=20, width=8)
 
     @staticmethod
     def list():

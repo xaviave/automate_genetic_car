@@ -21,6 +21,7 @@ class Car(GeometryUtils):
     angle: float = 4.72
     default_angle: float
     _min_heat_map: float
+    orientation: int = 1
     coord: tuple = (0, 0)
     tracks: list = []
     motors: list = []
@@ -46,19 +47,24 @@ class Car(GeometryUtils):
         # Add error flag for gif and analysis
         return True
 
-    def _check_coord(self) -> bool:
-        # Add error flag for gif and analysis
-        return False if self.coord[0] < 0 or self.coord[1] < 0 else True
+    def _check_coord(self, track_map) -> int:
+        if self.coord[0] < 0 or self.coord[1] < 0:
+            return 0
+        return (
+            0
+            if tuple(track_map[self.coord[0]][self.coord[1]]) == (255, 255, 255, 255)
+            else 1
+        )
 
-    def _get_light_map(self, shape: tuple, i):
+    def _get_light_map(self, shape: tuple):
         self.light_map.fill(0)
         self.light_mask.fill(0)
         for light in self.headlights:
-            tmask, tmap = light.light(self.coord, self.angle, np.zeros(shape=shape), i)
+            tmask, tmap = light.light(self.coord, self.angle, np.zeros(shape=shape))
             self.light_mask += tmask
             self.light_map = cv2.add(tmap, self.light_map)
 
-    def _get_sensor_map(self, track_map: np.ndarray, i):
+    def _get_sensor_map(self, track_map: np.ndarray):
         """
         sum all matrix, allow weight on each pixeldx
         """
@@ -66,7 +72,7 @@ class Car(GeometryUtils):
         for sensor in self.sensors:
             self.sensor_map = cv2.add(
                 self.sensor_map,
-                sensor.detect(self.coord, self.angle, track_map, self.light_mask, i),
+                sensor.detect(self.coord, self.angle, track_map, self.light_mask),
             )
 
     def _use_motors(self, next_car_coord: tuple):
@@ -82,10 +88,22 @@ class Car(GeometryUtils):
         """
         self.coord = self.motors[0].move(self.coord, next_car_coord, self.angle)
 
-    def _no_sensor_detection(self, angle: bool) -> tuple:
-        print("_no_sensor_detection")
+    def _compute_direction(self, angle: float, diff: tuple) -> int:
+        if angle > 2 * np.pi:
+            angle -= angle / (2 * np.pi)
+        if 0 < angle < 1 / 2 * np.pi:
+            self.orientation = 1 if diff == (False, False) else -1
+        if 1 / 2 * np.pi < angle < np.pi:
+            self.orientation = 1 if diff == (False, True) else -1
+        if np.pi < angle < 3 / 2 * np.pi:
+            self.orientation = 1 if diff == (True, True) else -1
+        self.orientation = 1 if diff == (True, False) else -1
+
+    def _no_sensor_detection(self):
         self._has_turn = False
-        self.angle += -self.default_angle if angle else self.default_angle
+        print(f"last angle {np.degrees(self.angle)}")
+        self.angle -= self.default_angle * self.orientation
+        print(f"orientation {self.orientation} new: {np.degrees(self.angle)}")
         return self.coord
 
     def _compute_heat_map(self, sensor_map: np.ndarray) -> np.ndarray:
@@ -100,18 +118,17 @@ class Car(GeometryUtils):
         b = -1
         coord = [-1, -1]
         if len(coorda.shape) == 1:
-            # one value found
             return coorda
         for a in coorda:
-            tmp = self._vec_length(
-                a, self.coord
-            )  # * (sensor_map[a[0]][a[1]] * 0.2 / 100)
+            tmp = self._vec_length_from_points(a, self.coord) * (
+                sensor_map[a[0]][a[1]] / 1000
+            )
             if tmp > b:
                 b = tmp
                 coord = a
         return coord
 
-    def _turn(self, i):
+    def _turn(self):
         """
         if b is returned, it's equaled to the point B of a right angle of the triangle CAB
         C is the car coord, BC are the hypotension of this triangle
@@ -119,25 +136,29 @@ class Car(GeometryUtils):
         It allows us to find the angle of BCA, minus car angle is the good car direction
         """
         b = self._compute_heat_map(np.add.reduce(self.sensor_map, 2))
+        middle_coord = np.array([0, 0], dtype=np.float64)
+        for p in self.headlights:
+            middle_coord += p.middle_coord
+        middle_coord = middle_coord / len(self.headlights)
         if b is [-1, -1] or tuple(b) == tuple([self.coord[0], b[1]]):
-            print(tuple(b) == tuple([self.coord[0], b[1]]))
-            return self._no_sensor_detection(tuple(b) == tuple([self.coord[0], b[1]]))
-        angle = self._vec_length(b, (self.coord[0], b[1])) / self._vec_length(
-            self.coord, b
-        )
-        print(
-            f"""
-car coord {self.coord} - p2 = {b} - p3 = {(self.coord[0], b[1])}
-(car_coord; p2) length: {self._vec_length(self.coord, b)}
-(p2 p3) length: {self._vec_length(b,  (self.coord[0], b[1]))}
-angle = {angle}
-"""
+            return self._no_sensor_detection()
+        vec1 = (self.coord[0] - middle_coord[0], self.coord[1] - middle_coord[1])
+        vec2 = (self.coord[0] - b[0], self.coord[1] - b[1])
+        angle = (vec2[0] * vec1[0] + vec2[1] * vec1[1]) / (
+            self._vec_length(vec1) * self._vec_length(vec2)
         )
         if -1 <= angle <= 1:
+            angle = np.arccos(angle)
+            # print(b, middle_coord)
+            # print(f"orientation {self.orientation} angle: {np.degrees(angle)}, {tuple(b > middle_coord)}")
+            self._compute_direction(
+                self.angle + angle * self.orientation, tuple(b > middle_coord)
+            )
             self._has_turn = True
-            self.angle += np.arccos(angle)
+            self.angle += angle * self.orientation
+            # print(f"orientation {self.orientation} new angle: {np.degrees(self.angle)}")
             return b
-        return self._no_sensor_detection(True)
+        return self._no_sensor_detection()
 
     def _drive(self, track_map, timer=datetime.timedelta(seconds=20)):
         i = 0
@@ -147,18 +168,17 @@ angle = {angle}
                 datetime.datetime.now() - start_time < timer,
                 self._check_sensors_state(),
                 self._check_power_state(),
-                self._check_coord(),
-                # i < 7,
+                self._check_coord(track_map),
             ]
         ):
-            print(f"iteration: {i}")
+            print(
+                f"\n{'-' * 50}\niteration: {i} | time {datetime.datetime.now() - start_time}"
+            )
             file_name = os.path.join(self.tmp_tracks_path, f"{i}")
-            self._get_light_map(track_map.shape, i)
-            self._get_sensor_map(track_map, i)
+            self._get_light_map(track_map.shape)
+            self._get_sensor_map(track_map)
             next_car_coord = (
-                self._turn(i)
-                if np.max(self.sensor_map)
-                else self._no_sensor_detection()
+                self._turn() if np.max(self.sensor_map) else self._no_sensor_detection()
             )
             last_car_coord = self.coord
             if self._has_turn:
@@ -172,6 +192,8 @@ angle = {angle}
                     last_car_coord,
                 )
             )
+            if self.angle > 2 * np.pi:
+                self.angle -= self.angle / (2 * np.pi)
             i += 1
         logging.info(f"iteration: {i}")
 

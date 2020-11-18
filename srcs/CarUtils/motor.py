@@ -32,7 +32,8 @@ class Motor(GeometryUtils):
         return next_car_coord
         return (
             next_car_coord
-            if self._vec_length(next_car_coord, car_coord) < self.max_acceleration
+            if self._vec_length_from_points(next_car_coord, car_coord)
+            < self.max_acceleration
             else (
                 int(car_coord[0] + (np.cos(angle) * self.max_acceleration)),
                 int(car_coord[1] + (np.sin(angle) * self.max_acceleration)),

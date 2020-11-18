@@ -4,8 +4,12 @@ import numpy as np
 
 class GeometryUtils:
     @staticmethod
-    def _vec_length(vec1: tuple, vec2: tuple):
-        return np.sqrt((vec2[0] - vec1[0]) ** 2 + (vec2[1] - vec1[1]) ** 2)
+    def _vec_length(vec: tuple):
+        return np.sqrt(vec[0] ** 2 + vec[1] ** 2)
+
+    def _vec_length_from_points(self, vec1: tuple, vec2: tuple):
+        vec = (vec2[0] - vec1[0], vec2[1] - vec1[1])
+        return self._vec_length(vec)
 
     @staticmethod
     def _rotate(vec: np.array, angle: float) -> np.array:
@@ -31,13 +35,14 @@ class GeometryUtils:
     ) -> np.ndarray:
         vec1 = self._rotate_around_point(ref_vec, angle0, ref_point)
         vec2 = self._rotate_around_point(ref_vec, angle1, ref_point)
-        print(ref_point, vec1, vec2)
-        pts = np.array([[ref_point, vec1, vec2]], dtype=np.int32)
-        pts2 = np.array(
-            [[(ref_point[1], ref_point[0]), (vec1[1], vec1[0]), (vec2[1], vec2[0])]],
+        vec1 = (vec1[1], vec1[0])
+        vec2 = (vec2[1], vec2[0])
+        self.middle_coord = np.add(vec2, vec1) / 2
+        pts = np.array(
+            [[(ref_point[1], ref_point[0]), vec1, vec2]],
             dtype=np.int32,
         )
-        cv2.fillPoly(array, pts2, (1, 0, 0, 255))
+        cv2.fillPoly(array, pts, (1, 0, 0, 255))
         return 1 * np.all(array == np.array([1, 0, 0, 255]), axis=2)
 
     @staticmethod
