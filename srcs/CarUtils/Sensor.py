@@ -72,7 +72,7 @@ class Sensor(GeometryUtils):
             np.zeros(track_map.shape),
             self.sensor_vector,
             car_coord,
-            car_angle - self.angle,
+            car_angle - self.angle - self.angle_range,
             car_angle - self.angle + self.angle_range,
         )
         # boolean map with light map and sensor mask,

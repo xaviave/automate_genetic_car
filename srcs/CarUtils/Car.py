@@ -21,6 +21,7 @@ class Car(GeometryUtils):
     angle: float = 4.72
     default_angle: float
     _min_heat_map: float
+    iteration: int = 0
     orientation: int = 1
     coord: tuple = (0, 0)
     tracks: list = []
@@ -52,7 +53,7 @@ class Car(GeometryUtils):
             return 0
         return (
             0
-            if tuple(track_map[self.coord[0]][self.coord[1]]) == (255, 255, 255, 255)
+            if tuple(track_map[self.coord[0]][self.coord[1]]) > (200, 200, 200, 255)
             else 1
         )
 
@@ -79,13 +80,6 @@ class Car(GeometryUtils):
         """
         could add efficiency depending to environment and number of motors
         """
-        """
-        think about the multi motor calculation
-        dist: float = 0
-        for x in self.motors:
-            dist += x.move(self.coord, self.angle)
-        return dist / len(self.motors)
-        """
         self.coord = self.motors[0].move(self.coord, next_car_coord, self.angle)
 
     def _compute_direction(self, angle: float, diff: tuple) -> int:
@@ -101,9 +95,7 @@ class Car(GeometryUtils):
 
     def _no_sensor_detection(self):
         self._has_turn = False
-        print(f"last angle {np.degrees(self.angle)}")
         self.angle -= self.default_angle * self.orientation
-        print(f"orientation {self.orientation} new: {np.degrees(self.angle)}")
         return self.coord
 
     def _compute_heat_map(self, sensor_map: np.ndarray) -> np.ndarray:
@@ -142,25 +134,22 @@ class Car(GeometryUtils):
         middle_coord = middle_coord / len(self.headlights)
         if b is [-1, -1] or tuple(b) == tuple([self.coord[0], b[1]]):
             return self._no_sensor_detection()
-        vec1 = (self.coord[0] - middle_coord[0], self.coord[1] - middle_coord[1])
-        vec2 = (self.coord[0] - b[0], self.coord[1] - b[1])
+        vec1 = (middle_coord[0] - self.coord[0], middle_coord[1] - self.coord[1])
+        vec2 = (b[0] - self.coord[0], b[1] - self.coord[1])
         angle = (vec2[0] * vec1[0] + vec2[1] * vec1[1]) / (
             self._vec_length(vec1) * self._vec_length(vec2)
         )
         if -1 <= angle <= 1:
             angle = np.arccos(angle)
-            # print(b, middle_coord)
-            # print(f"orientation {self.orientation} angle: {np.degrees(angle)}, {tuple(b > middle_coord)}")
             self._compute_direction(
                 self.angle + angle * self.orientation, tuple(b > middle_coord)
             )
             self._has_turn = True
             self.angle += angle * self.orientation
-            # print(f"orientation {self.orientation} new angle: {np.degrees(self.angle)}")
             return b
         return self._no_sensor_detection()
 
-    def _drive(self, track_map, timer=datetime.timedelta(seconds=20)):
+    def _drive(self, track_map, timer=datetime.timedelta(seconds=30)):
         i = 0
         start_time = datetime.datetime.now()
         while all(
@@ -171,9 +160,6 @@ class Car(GeometryUtils):
                 self._check_coord(track_map),
             ]
         ):
-            print(
-                f"\n{'-' * 50}\niteration: {i} | time {datetime.datetime.now() - start_time}"
-            )
             file_name = os.path.join(self.tmp_tracks_path, f"{i}")
             self._get_light_map(track_map.shape)
             self._get_sensor_map(track_map)
@@ -195,6 +181,7 @@ class Car(GeometryUtils):
             if self.angle > 2 * np.pi:
                 self.angle -= self.angle / (2 * np.pi)
             i += 1
+        self.iterations = i
         logging.info(f"iteration: {i}")
 
     def __init__(
@@ -221,6 +208,14 @@ class Car(GeometryUtils):
         self._check_path(self.gif_path)
         self._check_path(self.tmp_tracks_path)
 
+    def __dict__(self):
+        return {
+            "angle": self.angle,
+            "min_heat_map": self._min_heat_map,
+            "sensor": self.sensors,
+            "headlight": self.headlights,
+        }
+
     """
         Public Methods
     """
@@ -237,5 +232,5 @@ class Car(GeometryUtils):
                 os.path.join(self.gif_path, "xagc.gif"),
                 self.tmp_tracks_path,
                 os.listdir(self.tmp_tracks_path),
-                # delete=True,
+                delete=True,
             )

@@ -50,7 +50,7 @@ class Headlight(GeometryUtils):
             track_map,
             self.light_vector,
             car_coord,
-            car_angle - self.angle,
+            car_angle - self.angle - self.angle_range,
             car_angle - self.angle + self.angle_range,
         )
         return mask, self._intensity_map(mask, bin_map=True)

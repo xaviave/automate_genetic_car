@@ -114,8 +114,8 @@ class TrackGenerator(ArgParser):
         :param range_x: range between the x given
         :param range_y: range between the y given
         """
-        min_x = x - range_x if x - range_x > last_point[0] else last_point[0] + range_x
-        min_y = y - range_y if y - range_y > last_point[1] else last_point[1] + range_y
+        min_x = x - range_x if x - range_x > last_point[0] else last_point[0]
+        min_y = y - range_y if y - range_y > last_point[1] else last_point[1]
         px = abs(random.randint(abs(min_x), x + range_x))
         py = abs(random.randint(abs(min_y), y + range_y))
         return px, py
