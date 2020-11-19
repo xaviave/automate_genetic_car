@@ -5,11 +5,11 @@ Power supply is also a big parameter for every car, the consumation will be calc
 With repetition, random and selection, the car have to "evolve" and adapt itself to any road.
 
 New version: v0.1, angle correction
-![Example1](https://github.com/xaviave/autamate_genetic_car/data/readme/example_v0.1.gif)
+![Example1](https://github.com/xaviave/automate_genetic_car/blob/main/data/readme/example_v0.1.gif)
 v0
-![Example](https://github.com/xaviave/autamate_genetic_car/data/readme/example_v0.gif)
+![Example](https://github.com/xaviave/automate_genetic_car/blob/main/data/readme/example_v0.gif)
 Optimise by genetic algorithm. 20 individuals
-![Example_genetic](https://github.com/xaviave/autamate_genetic_car/data/readme/example_genetic.gif)
+![Example_genetic](https://github.com/xaviave/automate_genetic_car/blob/main/data/readme/example_genetic.gif)
 
 
 ## Track generator
